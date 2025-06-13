@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Модель Солоу для экономики России</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f3f4f6;
+            color: #374151;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        
+        .header h1 {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #111827;
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            font-size: 1.125rem;
+            color: #6b7280;
+        }
+        
+        .tabs {
+            display: flex;
+            justify-content: center;
+            background: white;
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        
+        .tab-button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: transparent;
+            color: #374151;
+        }
+        
+        .tab-button:hover {
+            background-color: #f3f4f6;
+        }
+        
+        .tab-button.active {
+            background-color: #3b82f6;
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .card h3 {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 16px;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin-bottom: 16px;
+        }
+        
+        .chart-container-small {
+            position: relative;
+            height: 300px;
+        }
+        
+        .grid {
+            display: grid;
+            gap: 24px;
+        }
+        
+        .grid-3 {
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        }
+        
+        .grid-2 {
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        }
+        
+        .metric-card {
+            padding: 24px;
+            border-radius: 8px;
+            border-left: 4px solid;
+        }
+        
+        .metric-card.blue {
+            background-color: #eff6ff;
+            border-color: #3b82f6;
+        }
+        
+        .metric-card.red {
+            background-color: #fef2f2;
+            border-color: #ef4444;
+        }
+        
+        .metric-card.green {
+            background-color: #f0fdf4;
+            border-color: #22c55e;
+        }
+        
+        .metric-card h4 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .metric-card.blue h4 {
+            color: #1e40af;
+        }
+        
+        .metric-card.red h4 {
+            color: #dc2626;
+        }
+        
+        .metric-card.green h4 {
+            color: #16a34a;
+        }
+        
+        .metric-list {
+            font-size: 14px;
+        }
+        
+        .metric-list p {
+            margin-bottom: 4px;
+        }
+        
+        .parameter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 24px;
+        }
+        
+        .parameter-item {
+            text-align: center;
+        }
+        
+        .parameter-label {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 4px;
+        }
+        
+        .parameter-value {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        
+        .parameter-value.blue { color: #2563eb; }
+        .parameter-value.red { color: #dc2626; }
+        .parameter-value.purple { color: #7c3aed; }
+        .parameter-value.green { color: #16a34a; }
+        .parameter-value.orange { color: #ea580c; }
+        .parameter-value.teal { color: #0d9488; }
+        
+        .conclusion-card {
+            padding: 16px;
+            border-radius: 8px;
+            border-left: 4px solid;
+            margin-bottom: 16px;
+        }
+        
+        .conclusion-card.yellow {
+            background-color: #fffbeb;
+            border-color: #f59e0b;
+        }
+        
+        .conclusion-card.blue {
+            background-color: #eff6ff;
+            border-color: #3b82f6;
+        }
+        
+        .conclusion-card.red {
+            background-color: #fef2f2;
+            border-color: #ef4444;
+        }
+        
+        .conclusion-card.green {
+            background-color: #f0fdf4;
+            border-color: #22c55e;
+        }
+        
+        .conclusion-card h4 {
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .conclusion-card.yellow h4 { color: #92400e; }
+        .conclusion-card.blue h4 { color: #1e40af; }
+        .conclusion-card.red h4 { color: #dc2626; }
+        .conclusion-card.green h4 { color: #16a34a; }
+        
+        .conclusion-card p {
+            font-size: 14px;
+        }
+        
+        .footer {
+            margin-top: 32px;
+            text-align: center;
+            font-size: 14px;
+            color: #6b7280;
+        }
+        
+        .footer p {
+            margin-bottom: 4px;
+        }
+        
+        .diagram-note {
+            margin-top: 16px;
+            padding: 16px;
+            background-color: #f9fafb;
+            border-radius: 8px;
+        }
+        
+        .diagram-note p {
+            font-size: 14px;
+            color: #374151;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Модель Солоу для экономики России</h1>
+            <p>Анализ оптимальных значений в период 2018-2022 годов</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-button active" onclick="showTab('dynamics')">Динамика показателей</button>
+            <button class="tab-button" onclick="showTab('diagram')">Диаграмма Солоу</button>
+            <button class="tab-button" onclick="showTab('analysis')">Анализ и выводы</button>
+        </div>
+
+        <div id="dynamics" class="tab-content active">
+            <div class="card">
+                <h3>Динамика капиталовооруженности и производительности труда</h3>
+                <div class="chart-container">
+                    <canvas id="dynamicsChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Норма сбережений</h3>
+                <div class="chart-container-small">
+                    <canvas id="savingsChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div id="diagram" class="tab-content">
+            <div class="card">
+                <h3>Диаграмма Солоу</h3>
+                <div class="chart-container">
+                    <canvas id="solowChart"></canvas>
+                </div>
+                <div class="diagram-note">
+                    <p><strong>Пересечение линий sf(k) и (δ+n)k показывает устойчивое состояние k* = 3.6 млн руб./чел.</strong></p>
+                </div>
+            </div>
+        </div>
+
+        <div id="analysis" class="tab-content">
+            <div class="grid grid-3">
+                <div class="metric-card blue">
+                    <h4>Текущее состояние (2022)</h4>
+                    <div class="metric-list">
+                        <p><strong>k:</strong> 3.13 млн руб./чел.</p>
+                        <p><strong>y:</strong> 1.56 млн руб./чел.</p>
+                        <p><strong>s:</strong> 20.1%</p>
+                    </div>
+                </div>
+
+                <div class="metric-card red">
+                    <h4>Устойчивое состояние</h4>
+                    <div class="metric-list">
+                        <p><strong>k*:</strong> 3.6 млн руб./чел.</p>
+                        <p><strong>y*:</strong> 1.55 млн руб./чел.</p>
+                        <p><strong>Отклонение:</strong> -13.1%</p>
+                    </div>
+                </div>
+
+                <div class="metric-card green">
+                    <h4>Золотое правило</h4>
+                    <div class="metric-list">
+                        <p><strong>k_gold:</strong> 1.64 млн руб./чел.</p>
+                        <p><strong>y_gold:</strong> 1.45 млн руб./чел.</p>
+                        <p><strong>c_gold:</strong> 1.32 млн руб./чел.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Ключевые параметры модели</h3>
+                <div class="parameter-grid">
+                    <div class="parameter-item">
+                        <div class="parameter-label">Норма сбережений (s)</div>
+                        <div class="parameter-value blue">17.7%</div>
+                    </div>
+                    <div class="parameter-item">
+                        <div class="parameter-label">Норма амортизации (δ)</div>
+                        <div class="parameter-value red">7.7%</div>
+                    </div>
+                    <div class="parameter-item">
+                        <div class="parameter-label">Темп роста занятости (n)</div>
+                        <div class="parameter-value purple">-0.1%</div>
+                    </div>
+                    <div class="parameter-item">
+                        <div class="parameter-label">Эластичность по капиталу (α)</div>
+                        <div class="parameter-value green">0.086</div>
+                    </div>
+                    <div class="parameter-item">
+                        <div class="parameter-label">СФП (A)</div>
+                        <div class="parameter-value orange">1.385</div>
+                    </div>
+                    <div class="parameter-item">
+                        <div class="parameter-label">Эластичность по труду (1-α)</div>
+                        <div class="parameter-value teal">0.914</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Основные выводы анализа</h3>
+                <div class="conclusion-card yellow">
+                    <h4>1. Избыточная капитализация</h4>
+                    <p>Россия имеет капиталовооруженность выше оптимального уровня по золотому правилу (3.13 vs 1.64), что означает избыточное накопление капитала за счет потребления.</p>
+                </div>
+                
+                <div class="conclusion-card blue">
+                    <h4>2. Приближение к устойчивому состоянию</h4>
+                    <p>Фактическая капиталовооруженность на 13% ниже расчетного устойчивого состояния, что указывает на продолжающийся процесс накопления капитала.</p>
+                </div>
+                
+                <div class="conclusion-card red">
+                    <h4>3. Влияние коронакризиса</h4>
+                    <p>2020 год показал временное снижение производительности труда при продолжающемся росте капиталовооруженности, что характерно для экономических шоков.</p>
+                </div>
+                
+                <div class="conclusion-card green">
+                    <h4>4. Рекомендации по политике</h4>
+                    <p>Оптимальная норма сбережений составляет 8.6% вместо фактических 17.7%, что позволило бы увеличить потребление без ущерба для долгосрочного роста.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Источники данных: Росстат, ЦБ РФ, Минфин РФ</p>
+            <p>Производственная функция: Y = A × K^α × L^(1-α), где α = 0.086, A = 1.385</p>
+        </div>
+    </div>
+
+    <script>
+        // Данные для графиков
+        const data = [
+            { year: 2018, actual_k: 2.53, actual_y: 1.51, steady_k: 3.6, steady_y: 1.55, golden_k: 1.64, golden_y: 1.45, savings_rate: 0.161 },
+            { year: 2019, actual_k: 2.71, actual_y: 1.53, steady_k: 3.6, steady_y: 1.55, golden_k: 1.64, golden_y: 1.45, savings_rate: 0.171 },
+            { year: 2020, actual_k: 2.90, actual_y: 1.46, steady_k: 3.6, steady_y: 1.55, golden_k: 1.64, golden_y: 1.45, savings_rate: 0.166 },
+            { year: 2021, actual_k: 3.01, actual_y: 1.52, steady_k: 3.6, steady_y: 1.55, golden_k: 1.64, golden_y: 1.45, savings_rate: 0.185 },
+            { year: 2022, actual_k: 3.13, actual_y: 1.56, steady_k: 3.6, steady_y: 1.55, golden_k: 1.64, golden_y: 1.45, savings_rate: 0.201 }
+        ];
+
+        // Параметры модели
+        const parameters = {
+            s: 0.177,
+            delta: 0.077,
+            n: -0.001,
+            alpha: 0.086,
+            A: 1.385
+        };
+
+        // Генерация данных для производственной функции
+        function generateProductionFunction() {
+            const productionFunction = [];
+            for (let k = 0.5; k <= 5; k += 0.1) {
+                const y = parameters.A * Math.pow(k, parameters.alpha);
+                const investment = parameters.s * y;
+                const depreciation = (parameters.delta - parameters.n) * k;
+                productionFunction.push({
+                    k: Math.round(k * 100) / 100,
+                    y: Math.round(y * 1000) / 1000,
+                    investment: Math.round(investment * 1000) / 1000,
+                    depreciation: Math.round(depreciation * 1000) / 1000,
+                    net_investment: Math.round((investment - depreciation) * 1000) / 1000
+                });
+            }
+            return productionFunction;
+        }
+
+        // Функция переключения вкладок
+        function showTab(tabName) {
+            // Скрыть все вкладки
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Убрать активный класс у всех кнопок
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            // Показать выбранную вкладку
+            document.getElementById(tabName).classList.add('active');
+            
+            // Активировать соответствующую кнопку
+            event.target.classList.add('active');
+        }
+
+        // Инициализация графиков
+        let dynamicsChart, savingsChart, solowChart;
+
+        function initCharts() {
+            // График динамики
+            const ctx1 = document.getElementById('dynamicsChart').getContext('2d');
+            dynamicsChart = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: data.map(d => d.year),
+                    datasets: [
+                        {
+                            label: 'Фактическая k',
+                            data: data.map(d => d.actual_k),
+                            borderColor: '#2563eb',
+                            backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Устойчивая k*',
+                            data: data.map(d => d.steady_k),
+                            borderColor: '#dc2626',
+                            borderDash: [5, 5],
+                            borderWidth: 2,
+                            fill: false
+                        },
+                        {
+                            label: 'Золотая k_gold',
+                            data: data.map(d => d.golden_k),
+                            borderColor: '#16a34a',
+                            borderDash: [10, 5],
+                            borderWidth: 2,
+                            fill: false
+                        },
+                        {
+                            label: 'Фактическая y',
+                            data: data.map(d => d.actual_y),
+                            borderColor: '#7c3aed',
+                            backgroundColor: 'rgba(124, 58, 237, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Устойчивая y*',
+                            data: data.map(d => d.steady_y),
+                            borderColor: '#ea580c',
+                            borderDash: [5, 5],
+                            borderWidth: 2,
+                            fill: false
+                        },
+                        {
+                            label: 'Золотая y_gold',
+                            data: data.map(d => d.golden_y),
+                            borderColor: '#059669',
+                            borderDash: [10, 5],
+                            borderWidth: 2,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'млн руб./чел.'
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y.toFixed(3);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // График нормы сбережений
+            const ctx2 = document.getElementById('savingsChart').getContext('2d');
+            savingsChart = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: data.map(d => d.year),
+                    datasets: [{
+                        label: 'Норма сбережений',
+                        data: data.map(d => d.savings_rate),
+                        backgroundColor: '#3b82f6',
+                        borderColor: '#1d4ed8',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Доля'
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Норма сбережений: ' + context.parsed.y.toFixed(3);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Диаграмма Солоу
+            const productionData = generateProductionFunction();
+            const ctx3 = document.getElementById('solowChart').getContext('2d');
+            solowChart = new Chart(ctx3, {
+                type: 'line',
+                data: {
+                    labels: productionData.map(d => d.k),
+                    datasets: [
+                        {
+                            label: 'Производственная функция f(k)',
+                            data: productionData.map(d => d.y),
+                            borderColor: '#2563eb',
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Инвестиции sf(k)',
+                            data: productionData.map(d => d.investment),
+                            borderColor: '#16a34a',
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Выбытие (δ+n)k',
+                            data: productionData.map(d => d.depreciation),
+                            borderColor: '#dc2626',
+                            borderWidth: 2,
+                            fill: false
+                        },
+                        {
+                            label: 'Чистые инвестиции',
+                            data: productionData.map(d => d.net_investment),
+                            borderColor: '#7c3aed',
+                            borderDash: [5, 5],
+                            borderWidth: 2,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Капиталовооруженность k (млн руб./чел.)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'млн руб./чел.'
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                title: function(context) {
+                                    return 'k = ' + context[0].label;
+                                },
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y.toFixed(3);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Инициализация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            initCharts();
+        });
+    </script>
+</body>
+</html>
